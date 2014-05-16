@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Set these paths appropriately
+
+BIN=/global/nicklaus/fohr/treetagger/bin
+CMD=/global/nicklaus/fohr/treetagger/cmd
+LIB=/global/nicklaus/fohr/treetagger/lib
+
+OPTIONS="-token -lemma -sgml"
+
+TAGGER=${BIN}/tree-tagger
+TOKENIZER=${CMD}/tokenize.pl
+ABBR_LIST=${LIB}/french-abbreviations
+PARFILE=${LIB}/french.par
+
+# tagging with Stein's tagger
+$TOKENIZER -f -a $ABBR_LIST $* |
+$TAGGER $OPTIONS $PARFILE

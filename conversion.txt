@@ -1,0 +1,3 @@
+_,_,SUJ => -gov0 gov0,head0,suj
+_,_,DET => -gov0 gov0,head0,det
+_,_,ATTS => -gov0 gov0,head0,ats

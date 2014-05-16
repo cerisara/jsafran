@@ -1,0 +1,59 @@
+\documentclass{article}
+
+\usepackage{url}
+
+\begin{document}
+
+\section{Introduction}
+For now, this is just a sketch of a document.
+
+A somehow more complete (though older) guide can be found on the web (\url{http://rapsodis.loria.fr/jsafran/userguide.html}).
+
+\section{Search/Replace function}
+
+The search/replace function manipulates trees, and can be accessed from the menu,
+or from the F2 shortcut, or yet the Ctrl-F shortcut (useful especially for Mac).
+
+In the following, we call a {\bf triplet} something in the form:
+\begin{verbatim}
+f=je,p=*VER.*,SUJ
+\end{verbatim}
+or with optional parenthesis, such as in:
+\begin{verbatim}
+(f=je,_,_)
+\end{verbatim}
+
+A triplet is composed of 3 fields:
+\begin{enumerate}
+\item The governed word (on both previous examples, constrained to be of the form ``je'', case-insensitive; use ``F='' to be case-sensitive, ``l='' to match the lemma and ``p='' to match the POS-tag; use ``!='' to match any word except...; use ``\_'' to match any word);
+\item The head word (on the first example, the POS-tag must match the ``VER.*'' Java-compliant regular expression)
+\item The dependency label
+\end{enumerate}
+
+\subsection{Behavior}
+
+{\bf Warning:} the order you write the ``triplets'' is important:
+in fact, the system will search for {\bf every} occurrences of the first triplet,
+and for each such occurrence, it will search for {\bf the first} occurrence of the second,
+third, ... triplets.
+This behavior can be changed to searching for every occurrences of the second, third, ...
+triplets by checking the first check-box on the query-editing window.
+
+\subsection{Special constraints}
+
+\subsubsection{Match the closest word: dep1..closest..dep0}
+
+This matches only one possible triplet T1: the one with the closest dep1 from dep0.
+This typically is used in conjunction with another left or right constraint: e.g., dep1<dep0
+so that only the closest on the left is matched. Without any left nor right constraint,
+the closest dep1 will match, and in case of left-right conflict about the closest, one of them
+is chosen, and it is undefined which one.
+
+This constraint breaks the recursive search and doubles the search cost, so it shall be used
+with care. In particular:
+\begin{itemize}
+\item There must be AT MOST ONLY ONE closest constraint per query; otherwise, the search might crash.
+\item The constraint MUST have the form depX..closest..depY with X>Y !! Otherwise, the search may crash.
+\end{itemize}
+
+\end{document}

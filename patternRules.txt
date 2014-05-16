@@ -1,0 +1,50 @@
+% d'abord les classes
+class ETRE lemme être|paraître|devenir
+class NOUN postag N.*
+class NAM postag NAM
+class NOUNV postag N.*|VER:infi
+class VERB postag V.*
+class VINF postag VER:infi
+class DET postag DET.*|PRP.*|PRO:IND|PRO:DEM|NUM
+class PROSUJ forme qui|Qui|je|Je|J'|j'|tu|Tu|t'|T'|il|Il|elle|Elle|on|On|nous|Nous|vous|Vous|ils|Ils|elles|Elles|Cela|cela|ça|Ca|Ce|ce|c'|C'|Aucun|aucun|Tout|tout|Tous|tous|Peu|peu|Aucune|aucune|Aucuns|aucuns|Aucunes|aucunes|Quelqu'un|quelqu'un|Quelques-un|quelques-un|Quelques-unes|quelques-unes
+class PROOBJ forme le|la|les|nous|vous|en|que|qu'
+class PROPOBJ forme lui|leur|nous|vous|en
+class SE forme se|s'
+class Y forme y
+class NE forme ne|n'
+class PAS postag ADV
+class PRP postag PRP.*
+class AUX lemme être|avoir
+class ADJ postag ADJ
+class PARTPASSE postag VER:pper
+class QUI forme qui
+class QUE forme que|qu'
+% puis les regles
+For all NOUN link to the first VERB without SUJ on the right with SUJ
+For all PROSUJ link to the first VERB within 4 words on the right with SUJ
+For all PROOBJ link to the first VERB within 4 words on the right with OBJ
+For all PROPOBJ link to the first VERB within 4 words on the right with POBJ
+For all NOUNV link to the first VERB on the left with OBJ
+For all DET link to the first NOUN within 4 words on the right with DET
+For all SE link to the first VERB within 3 words on the right with REF
+For all Y link to the first VERB within 3 words on the right with DUMMY
+For all NE link to the first VERB within 3 words on the right with MOD
+For all PAS link to the first VERB on the left with MOD
+For all NOUNV link to the first PRP on the left with COMP
+For all PRP link to the word just before with MOD
+For all AUX link to the first PARTPASSE within 5 words on the right with AUX
+For all ADJ link to the first NOUN within 6 words on the right with MOD
+For all ADJ link to the first NOUN on the left with MOD
+For all ADJ link to the first ETRE on the left with ATTS
+% l'homme qui dort
+For all QUI that is SUJ link its head to the first NOUN on the left with MOD
+% la pomme que je mange
+For all QUE that is OBJ link its head to the first NOUN on the left with MOD
+% il dit que ...
+For all QUE link to the first VERB on the left with OBJ
+% il dit que c'est bon
+For all VERB link to the first QUE on the left with COMP
+% il vient de partir
+For all VINF link to the first PRP on the left with COMP
+For all NAM link to the NAM just before with MOD
+For all dep AUX link all children to its head

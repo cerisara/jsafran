@@ -1,0 +1,49 @@
+Raccourcis-claviers les plus importants:
+
+- [d] entree/sortie du mode edition de dependances
+- [e] edition des mots de la phrase courante
+- [espace] selection d'un groupe (non disjoint) de phrases
+- [p] parse automatiquement la phrase courante
+- [z] affiche/cache les POStags
+- [Z] affiche/cache les dependances
+- [flêches haut/bas] se deplacer dans les phrases
+- [flêches gauche/droit] choix du mot courant
+
+- [c] coupe la phrase courante en 2 parties, juste apres le mot selectionne
+- [j] entree/sortie du mode "jointure" pour rassembler deux phrases en une seule
+- [n] edition/ajout d'un commentaire ("note") pour la phrase courante
+- [i] screenshot: sauve un fichier .jpg pour la phrase courante
+- [s] split le mot courant selon les espaces présents dans le mot
+- [w] rassemble le mot courant et le suivant en un seul mot
+- [x] supprime le mot courant
+
+- [g] definition d'un groupe (selection avec shift-fleches)
+- [F3] toggle: recherche/visu par un groupe 
+- [Shift-g] gestionnaire de groupes
+- [F7] quicksearch
+- [Ctrl-F7] quicksearch next
+- [F8] search selected tree (with 's')
+- [Ctrl-F8] search next selected tree
+- [Ctrl-f] SEARCH/REPLACE
+
+Exemple of SEARCH/REPLACE expressions:
+
+all JUXT to the right are converted to the left: the root of the right tree is
+JUXT towards the left constituant
+     (_,_,JUXT) head0>gov0 => rootofhead0,gov0,JUXT
+look for all utterances tagged with #HEADLINE_INTRO
+     (_,_,_) n=#HEADLI
+
+look for all consecutive pairs of words "euh euh"
+     (f=euh,_,_) (f=euh,_,_) gov1=gov0+1
+
+look for all heads that have two consecutive children
+     (_,_,_) (_,head0,_) gov1=gov0+1
+
+look for COD that precede the "avoir" auxiliary
+(assuming the head of both COD and AUX is the non-aux verb)
+     (_,_,OBJ) (l=avoir,head0,AUX) gov0<gov1
+(or equivalently)
+     (_,_,OBJ) (l=avoir,_,AUX) head1=head0 gov0<gov1
+
+

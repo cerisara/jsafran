@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Set these paths appropriately
+
+BIN=/global/nicklaus/fohr/treetagger/bin
+CMD=/global/nicklaus/fohr/treetagger/cmd
+LIB=/global/nicklaus/fohr/treetagger/lib
+
+GERMANTAGGER=${CMD}/tree-tagger-german
+TAGGER=${BIN}/tree-tagger
+PARFILE=${LIB}/german-chunker.par
+FILTER=${CMD}/filter-chunker-output-german.perl
+
+$GERMANTAGGER $* |
+perl -nae 'if ($#F==0){print}else{print "$F[0]-$F[1]\n"}' |
+$TAGGER $PARFILE -token -sgml -eps 0.00000001 -hyphen-heuristics -quiet |
+$FILTER
