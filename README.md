@@ -10,4 +10,3 @@ Main features:
 * Include the MATE and Malt parsers, and the Treetagger for automatic training and parsing
 * Regular-expression based query/edition language
 * Beta code for unsupervised dependency parsing
-
