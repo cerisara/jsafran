@@ -261,7 +261,7 @@ public class MateParser {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				POStagger.setFrenchModels();
-				MateParser.setMods("mate.mods");
+				MateParser.setMods("mate.mods.FTBfull");
 			}
 		});
 		group.add(p7mods);
