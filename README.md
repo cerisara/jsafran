@@ -24,3 +24,7 @@ To run jsafran:
     java -jar jsafran.jar
 
 Please add an issue if you encounter problems.
+
+Dependencies and licence
+------------------------
+Please look at the doc/dependencies_and_licence.md file that details all libraries used by JSafran.
