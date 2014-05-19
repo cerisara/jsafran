@@ -32,11 +32,11 @@ public class RiskEstimator {
     }
     
     private float computeRisk() {
-        float r = 0.5f*(1f + linearWeights[1]*(float)means[1][1] + linearWeights[0]*(float)means[0][0] + linearWeights[0]*(float)means[0][1] + linearWeights[1]*(float)means[1][0]);
+        float r = 0.5f*(1f + linearWeights[0]*(float)means[0][1] + linearWeights[1]*(float)means[1][0]);
         r+=linearWeights[0]*diagvars[0][1]*gauss(means[0][0],means[0][1]+1f,diagvars[0][0]+diagvars[0][1]);
         r+=linearWeights[1]*diagvars[1][0]*gauss(means[1][1],means[1][0]+1f,diagvars[1][1]+diagvars[1][0]);
-        r+=linearWeights[0]*(means[0][0]-means[0][1]/2f-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
-        r+=linearWeights[1]*(means[1][1]-means[1][0]/2f-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
+        r+=linearWeights[0]/2.0*(means[0][0]-means[0][1]-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
+        r+=linearWeights[1]/2.0*(means[1][1]-means[1][0]-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
         return r;
     }
     

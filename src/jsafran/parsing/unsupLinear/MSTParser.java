@@ -468,8 +468,8 @@ public class MSTParser {
         GraphsCorpus c = new GraphsCorpus();
         MSTParser m = new MSTParser();
         m.initParser(c);
-//        m.trainPerceptronSupervised(c);
-        m.trainUnsup(c);
+        m.trainPerceptronSupervised(c);
+//        m.trainUnsup(c);
     }
     
     /**
