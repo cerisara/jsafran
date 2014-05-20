@@ -3,7 +3,6 @@ package corpus;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,12 +10,12 @@ import java.util.List;
 import utils.FileUtils;
 
 import jsafran.DetGraph;
-import jsafran.GraphIO;
 
 /**
  * This is the complete WSJ section of the PTB
  * 
  * To compute WSJ10, D. Klein says that he removes ponctuation first and obtain 7422 sentences.
+ * This works ! I obtain the very same 7422 sentences !
  * 
  * @author xtof
  *
@@ -82,12 +81,14 @@ public class WSJPennTreeBank {
     }
     
     void delponct(List<DetGraph> gs) {
-        String[] ponctTags = {".", ",", ":", "-LRB-", "-RRB", "''", "``"};
-        Arrays.sort(ponctTags);
+        String[] wordTags = {"CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS", "MD", "NN", "NNS", "NNP", "NNPS", "PDT",
+                "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"
+        };
+        Arrays.sort(wordTags);
         for (int i=0;i<gs.size();i++) {
             DetGraph g = gs.get(i);
             for (int j=g.getNbMots()-1;j>=0;j--)
-                if (Arrays.binarySearch(ponctTags, g.getMot(j).getPOS())>=0) g.delNodes(j, j);
+                if (Arrays.binarySearch(wordTags, g.getMot(j).getPOS())<0) g.delNodes(j, j);
         }
     }
     
