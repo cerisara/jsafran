@@ -83,4 +83,7 @@ public class SimplifiedLinearModel {
         for (float we : w) s+=we;
         return s;
     }
+    public void updateWeight(int feat, int lab, float epsilon) {
+        w[getWidx(feat, lab)] += epsilon;
+    }
 }

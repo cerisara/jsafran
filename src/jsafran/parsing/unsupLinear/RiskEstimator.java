@@ -11,14 +11,14 @@ public class RiskEstimator {
     final double minvar = 0.0001;
     double[][] means=new double[nlabs][nlabs], diagvars=new double[nlabs][nlabs];
     double[] tmp=new double[nlabs], gconst=new double[nlabs], logWeights=new double[nlabs];
-    float[] linearWeights=new float[nlabs];
+    float[] labelPriors=new float[nlabs];
     List<float[]> scores;
     LogMath logMath = new LogMath();
     int[] ex2lab=null;
 
     public RiskEstimator(float[] classPriors) {
         assert classPriors.length==nlabs;
-        linearWeights = Arrays.copyOf(classPriors, nlabs);
+        labelPriors = Arrays.copyOf(classPriors, nlabs);
         for (int i=0;i<classPriors.length;i++) {
             logWeights[i]=logMath.linearToLog(classPriors[i]);
         }
@@ -31,13 +31,30 @@ public class RiskEstimator {
         return r;
     }
     
-    private float computeRisk() {
-        float r = 0.5f*(1f + linearWeights[0]*(float)means[0][1] + linearWeights[1]*(float)means[1][0]);
-        r+=linearWeights[0]*diagvars[0][1]*gauss(means[0][0],means[0][1]+1f,diagvars[0][0]+diagvars[0][1]);
-        r+=linearWeights[1]*diagvars[1][0]*gauss(means[1][1],means[1][0]+1f,diagvars[1][1]+diagvars[1][0]);
-        r+=linearWeights[0]/2.0*(means[0][0]-means[0][1]-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
-        r+=linearWeights[1]/2.0*(means[1][1]-means[1][0]-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
+    /**
+     * This is the risk without constraints.
+     * I developed it because it allows to compute gradients of the Gaussian means.
+     * However, these gradients are only valid for a given clustering. So it's not possible to formally derive the global maximum with the gradients
+     * because of these discontinuities. So there is no real gain in removing constraints, and I come back to the constrained version of the risk shown next.
+     * @return
+     */
+    private float computeRiskunconstrained() {
+        float r = 0.5f*(1f + labelPriors[0]*(float)means[0][1] + labelPriors[1]*(float)means[1][0]);
+        r+=labelPriors[0]*diagvars[0][1]*gauss(means[0][0],means[0][1]+1f,diagvars[0][0]+diagvars[0][1]);
+        r+=labelPriors[1]*diagvars[1][0]*gauss(means[1][1],means[1][0]+1f,diagvars[1][1]+diagvars[1][0]);
+        r+=labelPriors[0]/2.0*(means[0][0]-means[0][1]-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
+        r+=labelPriors[1]/2.0*(means[1][1]-means[1][0]-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
         return r;
+    }
+    private float computeRisk() {
+        final double sqrtpi = Math.sqrt(Math.PI);
+        final double s0 = Math.sqrt(diagvars[0][0]);
+        double r = labelPriors[0]*(1f-2f*means[0][0])/(4f*s0*sqrtpi)*(1f+erf((0.5f-means[0][0])/s0));
+        r+= labelPriors[0]/2f/Math.PI * Math.exp(-(0.5-means[0][0])*(0.5-means[0][0])/diagvars[0][0]);
+        final double s1 = Math.sqrt(diagvars[1][1]);
+        r+= labelPriors[1]*(1f+2f*means[1][1])/(4f*s1*sqrtpi)*(1f-erf((-0.5f-means[1][1])/s1));
+        r+= labelPriors[1]/2f/Math.PI * Math.exp(-(-0.5-means[1][1])*(-0.5-means[1][1])/diagvars[1][1]);
+        return (float)r;
     }
     
     private float gauss(double x, double mu, double var) {

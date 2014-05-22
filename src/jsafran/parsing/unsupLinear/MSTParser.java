@@ -25,7 +25,7 @@ public class MSTParser {
     protected int[] feats = new int[nfeatsSlotsMax];
     protected HashMap<String, Integer> feat2idx = new HashMap<String, Integer>();
     static Random random = new Random();
-    SimplifiedLinearModel model;
+    ConstrainedLinearModel model;
     // TODO: make priors depend on sentence length !
     final float[] priors = {0.8f,0.2f};
 
@@ -44,7 +44,7 @@ public class MSTParser {
             for (int i=0;i<g.getNbMots();i++)
                 for (int j=0;j<g.getNbMots();j++)
                     if (i!=j) getFeats(g,i,j);
-        model = new SimplifiedLinearModel(feat2idx.size(), NACTIONS);
+        model = new ConstrainedLinearModel(feat2idx.size());
         model.randomInit();
         System.out.println("parser init done nfeats= "+feat2idx.size()+" "+NACTIONS);
     }
@@ -402,8 +402,8 @@ public class MSTParser {
                if (margin<margin2use) {
                    // this example is considered as badly classified
                    for (int activeFeat : obs) {
-                       model.w[model.getWidx(activeFeat, goldLab)] += epsilon;
-                       model.w[model.getWidx(activeFeat, recLab)] -= epsilon;
+                       model.updateWeight(activeFeat, goldLab, epsilon);
+                       model.updateWeight(activeFeat, recLab, -epsilon);
                    }
                } else {
                    nok++;
@@ -468,8 +468,8 @@ public class MSTParser {
         GraphsCorpus c = new GraphsCorpus();
         MSTParser m = new MSTParser();
         m.initParser(c);
-//        m.trainPerceptronSupervised(c);
-        m.trainUnsup(c);
+        m.trainPerceptronSupervised(c);
+//        m.trainUnsup(c);
     }
     
     /**
