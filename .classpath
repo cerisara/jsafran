@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/anna.jar"/>
+	<classpathentry kind="lib" path="lib/detcrf.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.21.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/jgit.jar"/>
+	<classpathentry kind="lib" path="lib/JHTK.jar"/>
+	<classpathentry kind="lib" path="lib/jsch.jar"/>
+	<classpathentry kind="lib" path="lib/jtrans.jar"/>
+	<classpathentry kind="lib" path="lib/libsvm.jar"/>
+	<classpathentry kind="lib" path="lib/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/malt.jar"/>
+	<classpathentry kind="lib" path="lib/maxent-2.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/myliblinear.jar"/>
+	<classpathentry kind="lib" path="lib/opennlp-tools-1.4.3.jar"/>
+	<classpathentry kind="lib" path="lib/org.annolab.tt4j-1.0.12.jar"/>
+	<classpathentry kind="lib" path="lib/trove.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
