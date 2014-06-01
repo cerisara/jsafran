@@ -6,19 +6,39 @@ import java.util.List;
 
 import acousticModels.LogMath;
 
+/**
+ * Observations:
+ * - le risk contraint tres instable: pourquoi ? r0 est stable, r1 est instable
+ * - mu0 diminue vers 1, mu1 reste autour de 23
+ * - var0 est stable, mais var1 devient tres petite et instable, et chaque fois qu'elle est seuillee a 1e-4, on a des sauts de r1 vers des valeurs tres grandes
+ * 
+ * 
+ * @author xtof
+ *
+ */
 public class RiskEstimator {
     final int nlabs=2;
     final double minvar = 0.0001;
+    /*
+     * means[0][0] = mu_{0,0} = score of class 0 | observations from class 0
+     * means[0][1] = mu_{0,1} = score of class 1 | observations from class 0 = -means[0][0]
+     * means[1][0] = mu_{1,0} = score of class 0 | observations from class 1
+     * means[1][1] = mu_{1,0} = score of class 1 | observations from class 1 = -means[1][0]
+     */
     double[][] means=new double[nlabs][nlabs], diagvars=new double[nlabs][nlabs];
     double[] tmp=new double[nlabs], gconst=new double[nlabs], logWeights=new double[nlabs];
-    float[] linearWeights=new float[nlabs];
+    float[] labelPriors=new float[nlabs];
+    // each contains the two scores as they are computed in ConstrainedLinearModel = scores of class 0 (both from 0-examples of 1-examples because we don't know to which class each example belongs)
+    // scores[0] = mu_{*,0} .. shall be used to compute Gaussian mu_{0,0} and Gaussian mu_{1,0}
+    // scores[1] = mu_{*,1}
     List<float[]> scores;
     LogMath logMath = new LogMath();
     int[] ex2lab=null;
+    double r0,r1; // decomposition of the risk into the risk per Y
 
     public RiskEstimator(float[] classPriors) {
         assert classPriors.length==nlabs;
-        linearWeights = Arrays.copyOf(classPriors, nlabs);
+        labelPriors = Arrays.copyOf(classPriors, nlabs);
         for (int i=0;i<classPriors.length;i++) {
             logWeights[i]=logMath.linearToLog(classPriors[i]);
         }
@@ -27,17 +47,51 @@ public class RiskEstimator {
     public float getRisk(List<float[]> sc) {
         scores=sc;
         trainGaussians();
+        System.out.println("vars "+diagvars[0][0]+" "+diagvars[0][1]+" "+diagvars[1][1]+" "+diagvars[1][0]);
+//        System.out.println("trainViterbi nex: "+nex[0]+" "+nex[1]);
         float r=computeRisk();
         return r;
     }
     
-    private float computeRisk() {
-        float r = 0.5f*(1f + linearWeights[1]*(float)means[1][1] + linearWeights[0]*(float)means[0][0] + linearWeights[0]*(float)means[0][1] + linearWeights[1]*(float)means[1][0]);
-        r+=linearWeights[0]*diagvars[0][1]*gauss(means[0][0],means[0][1]+1f,diagvars[0][0]+diagvars[0][1]);
-        r+=linearWeights[1]*diagvars[1][0]*gauss(means[1][1],means[1][0]+1f,diagvars[1][1]+diagvars[1][0]);
-        r+=linearWeights[0]*(means[0][0]-means[0][1]/2f-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
-        r+=linearWeights[1]*(means[1][1]-means[1][0]/2f-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
+    /**
+     * This is the risk without constraints.
+     * I developed it because it allows to compute gradients of the Gaussian means.
+     * However, these gradients are only valid for a given clustering. So it's not possible to formally derive the global maximum with the gradients
+     * because of these discontinuities. So there is no real gain in removing constraints, and I come back to the constrained version of the risk shown next.
+     * 
+     * Les XPs montrent que ce risk non contraint est beaucoup plus stable lorsqu'il est utilise avec un supervised training
+     * 
+     * @return
+     */
+    private float computeRiskunconstrained() {
+        float r = 0.5f*(1f + labelPriors[0]*(float)means[0][1] + labelPriors[1]*(float)means[1][0]);
+        r+=labelPriors[0]*diagvars[0][1]*gauss(means[0][0],means[0][1]+1f,diagvars[0][0]+diagvars[0][1]);
+        r+=labelPriors[1]*diagvars[1][0]*gauss(means[1][1],means[1][0]+1f,diagvars[1][1]+diagvars[1][0]);
+        r+=labelPriors[0]/2.0*(means[0][0]-means[0][1]-1)*(float)erf((means[0][0]-means[0][1]-1)/Math.sqrt(2f*(diagvars[0][0]+diagvars[0][1])));
+        r+=labelPriors[1]/2.0*(means[1][1]-means[1][0]-1)*(float)erf((means[1][1]-means[1][0]-1)/Math.sqrt(2f*(diagvars[1][1]+diagvars[1][0])));
         return r;
+    }
+    /**
+     * Ce risk contraint est instable lorsqu'il est utilise avec du supervised training !!
+     * 
+     * @return
+     */
+    private float computeRiskconstrained() {
+        final double sqrtpi = Math.sqrt(Math.PI);
+        final double s0 = Math.sqrt(diagvars[0][0]);
+        double r = labelPriors[0]*(1f-2f*means[0][0])/(4f*s0*sqrtpi)*(1f+erf((0.5f-means[0][0])/s0));
+        r+= labelPriors[0]/2f/Math.PI * Math.exp(-(0.5-means[0][0])*(0.5-means[0][0])/diagvars[0][0]);
+        r0=r;
+        final double s1 = Math.sqrt(diagvars[1][1]);
+        r1=0;
+        r1+= labelPriors[1]*(1f+2f*means[1][1])/(4f*s1*sqrtpi)*(1f-erf((-0.5f-means[1][1])/s1));
+        r1+= labelPriors[1]/2f/Math.PI * Math.exp(-(-0.5-means[1][1])*(-0.5-means[1][1])/diagvars[1][1]);
+        r+=r1;
+        return (float)r;
+    }
+    private float computeRisk() {
+//        return computeRiskunconstrained();
+        return computeRiskconstrained();
     }
     
     private float gauss(double x, double mu, double var) {
@@ -70,7 +124,62 @@ public class RiskEstimator {
         else        return -ans;
     }
 
+    /**
+     * We know the priors of the 2 classes. We are only using here the score of class 0, so we know that both Gaussians will be ordered as:
+     * mu_1 < mu_0
+     * 
+     * So we just have to find the Gaussian parameters so that P(1)% of the examples are classified into class 1, idem for class 0
+     * 
+     * We thus order all examples according to their score, and then initially affect the first P(1)% of them to Gaussian mu_1
+     * We then compute the Gaussian parameters, and reaffect the examples: if there are less examples classified into class 1, then we add one more
+     * example to class 1, and so on...
+     */
     private void trainGaussians() {
+        // order the scores of class 0
+        float[] sc0 = new float[scores.size()];
+        for (int i=0;i<sc0.length;i++) sc0[i] = scores.get(i)[0];
+        Arrays.sort(sc0);
+        
+        // init affect
+        int lim = (int)((float)sc0.length*labelPriors[0]);
+        calcGaussParms(sc0,lim);
+    }
+    private void calcGaussParms(float[] sc0, int lim) {
+        means[0][0]=0; means[1][0]=0;
+        float s1=0, s0=0;
+        // we know the scores of class 0 will be lower on class1-examples than on class0-examples
+        for (int i=0;i<lim;i++) {
+            means[1][0]+=sc0[i];
+            s1+=sc0[i]*sc0[i];
+        }
+        means[1][0]/=(float)lim;
+        means[1][1]=-means[1][0];
+        for (int i=lim;i<sc0.length;i++) {
+            means[0][0]+=sc0[i];
+            s0+=sc0[i]*sc0[i];
+        }
+        means[0][0]/=(float)(sc0.length-lim);
+        means[0][1]=-means[0][0];
+        
+        diagvars[0][0] = s0/(float)(sc0.length-lim) - means[0][0]*means[0][0];
+        diagvars[1][0] = s1/(float)lim - means[1][0]*means[1][0];
+        diagvars[0][1] = diagvars[0][0];
+        diagvars[1][1] = diagvars[1][0];
+        
+        for (int y=0;y<2;y++) {
+            double logdet=logMath.linearToLog(diagvars[y][0]);
+            double co=(double)logMath.linearToLog(2.0*Math.PI) +logdet;
+            co/=2.0;
+            gconst[y]=co;
+        }
+    }
+
+    /**
+     * This procedure follows a classical EM, but it from time to time leads to putting nearly all examples into one class, while we really
+     * want to enforce the knwon labels prior !
+     */
+    private void trainGaussiansEM() {
+        // TODO: don't retrain the Gaussians from scratch, but rather do a few iterations from their last values
         train1gauss();
         split();
         final int niters=50;
@@ -110,6 +219,8 @@ public class RiskEstimator {
         double loglikeYt = - gconst - o;
         return loglikeYt;
     }
+    
+    int[] nex;
     /**
      * reassigns each frame to one mixture, and retrain the mean and var
      * 
@@ -123,7 +234,7 @@ public class RiskEstimator {
             Arrays.fill(means[i], 0);
             Arrays.fill(diagvars[i], 0);
         }
-        int[] nex = new int[nlabs];
+        nex = new int[nlabs];
         Arrays.fill(nex, 0);
         if (ex2lab==null) ex2lab = new int[scores.size()];
         else assert scores.size()==ex2lab.length;
@@ -174,6 +285,7 @@ public class RiskEstimator {
             co/=2.0;
             gconst[y]=co;
         }
+        
     }
     
     /**

@@ -25,7 +25,8 @@ public class MSTParser {
     protected int[] feats = new int[nfeatsSlotsMax];
     protected HashMap<String, Integer> feat2idx = new HashMap<String, Integer>();
     static Random random = new Random();
-    SimplifiedLinearModel model;
+//    SimplifiedLinearModel model;
+    ConstrainedLinearModel model;
     // TODO: make priors depend on sentence length !
     final float[] priors = {0.8f,0.2f};
 
@@ -44,7 +45,8 @@ public class MSTParser {
             for (int i=0;i<g.getNbMots();i++)
                 for (int j=0;j<g.getNbMots();j++)
                     if (i!=j) getFeats(g,i,j);
-        model = new SimplifiedLinearModel(feat2idx.size(), NACTIONS);
+//        model = new SimplifiedLinearModel(feat2idx.size(), NACTIONS);
+        model = new ConstrainedLinearModel(feat2idx.size());
         model.randomInit();
         System.out.println("parser init done nfeats= "+feat2idx.size()+" "+NACTIONS);
     }
@@ -343,6 +345,9 @@ public class MSTParser {
        // if epsilon is smaller than one, then the total margin will tend to decrease a bit, might be overtraining ?
        final float minMargin = 1f; // minimum margin in the difference of score to consider the example as correctly classified
        // the base Margin does not seem to be influencial at all
+       
+       // I store the rec labs to be able to compute how many decisions have changed from one it to another
+       byte[] reclabs = new byte[fc.getNex()];
        {
            // initialize curves with init point
            float totalMargin=0;
@@ -350,6 +355,7 @@ public class MSTParser {
                int[] obs = fc.getFeats(i);
                int goldLab = fc.getLab(i);
                int recLab = model.getLabel(obs);
+               reclabs[i]=(byte)recLab;
                float margin;
                if (recLab!=goldLab)
                    // The margin is <0 if the gold label is ranked below than the label with the highest score
@@ -377,6 +383,7 @@ public class MSTParser {
        for (int iter=1;iter<niters;iter++) {
            int nok=0, nok0=0, nok1=0;
            float totalMargin=0;
+           int nDecisionsChanged = 0;
            for (int i=0;i<fc.getNex();i++) {
                int nw=fc.getSentenceLength(i)-1;
                int[] obs = fc.getFeats(i);
@@ -386,6 +393,8 @@ public class MSTParser {
                 */
                float margin2use=goldLab==0?minMargin:minMargin*nw*nw;
                int recLab = model.getLabel(obs);
+               if (recLab!=reclabs[i]) nDecisionsChanged++;
+               reclabs[i]=(byte)recLab;
                float margin;
                if (recLab!=goldLab)
                    // The margin is <0 if the gold label is ranked below than the label with the highest score
@@ -402,8 +411,8 @@ public class MSTParser {
                if (margin<margin2use) {
                    // this example is considered as badly classified
                    for (int activeFeat : obs) {
-                       model.w[model.getWidx(activeFeat, goldLab)] += epsilon;
-                       model.w[model.getWidx(activeFeat, recLab)] -= epsilon;
+                       model.updateWeight(activeFeat, goldLab, epsilon);
+                       model.updateWeight(activeFeat, recLab, -epsilon);
                    }
                } else {
                    nok++;
@@ -425,10 +434,12 @@ public class MSTParser {
            CurvePlotter.addPoint(uasPlotTrain, iter, uasTrain);
            List<float[]> scores = parseAndGetScores(gsTrain);
            float risk=r.getRisk(scores);
+           float r0=(float)r.r0;
+           float r1=(float)r.r1;
            CurvePlotter.addPoint(riskPlot, iter, risk);
            
            float sumOfWeights = model.getSumWeights();
-           System.out.println("iter "+iter+" ACC "+acc+" "+acc0+" "+acc1+" UAS "+uasTest+" "+uasTrain+" RISK "+risk+" SoW "+sumOfWeights+" Margin "+totalMargin);
+           System.out.println("iter "+iter+" ACC "+acc+" "+acc0+" "+acc1+" UAS "+uasTest+" "+uasTrain+" RISK "+r0+" "+r1+" SoW "+sumOfWeights+" Margin "+totalMargin+" nchanged "+nDecisionsChanged);
        }
    }
    
@@ -468,8 +479,8 @@ public class MSTParser {
         GraphsCorpus c = new GraphsCorpus();
         MSTParser m = new MSTParser();
         m.initParser(c);
-//        m.trainPerceptronSupervised(c);
-        m.trainUnsup(c);
+        m.trainPerceptronSupervised(c);
+//        m.trainUnsup(c);
     }
     
     /**
