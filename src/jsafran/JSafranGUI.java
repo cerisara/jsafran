@@ -37,6 +37,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
 import jsafran.audio.AudioAccess;
+import jsafran.audio.TextGridReader;
 import jsafran.constituants.FrenchTreeBank;
 import jsafran.constituants.PennTreeBank;
 import jsafran.corpus.GitCorpus;
@@ -439,21 +440,28 @@ public class JSafranGUI extends JPanel {
 			}
 		});
 		menufich.addSeparator();
-		JMenuItem audio = new JMenuItem("listen to Audio [k]");
+		JMenuItem audio = new JMenuItem("load Timestamps from TextGrid");
 		menufich.add(audio);
 		audio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				audioPlayer.listen(main.allgraphs, main.curgraph, main.editword);
+				TextGridReader.load(main.allgraphs);
 			}
 		});
-		JMenuItem jtrans = new JMenuItem("launch JTrans [k]");
-		menufich.add(jtrans);
-		jtrans.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JSafran2Jtrans.main=main;
-				JSafran2Jtrans.listenWithJtrans();
-			}
-		});
+//		JMenuItem audio = new JMenuItem("listen to Audio [k]");
+//		menufich.add(audio);
+//		audio.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				audioPlayer.listen(main.allgraphs, main.curgraph, main.editword);
+//			}
+//		});
+//		JMenuItem jtrans = new JMenuItem("launch JTrans [k]");
+//		menufich.add(jtrans);
+//		jtrans.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				JSafran2Jtrans.main=main;
+//				JSafran2Jtrans.listenWithJtrans();
+//			}
+//		});
 
 		// **************************************************************
 		JMenu menuPS = new JMenu("Constituants");
