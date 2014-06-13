@@ -37,7 +37,7 @@ public class JSafranInstall {
 			e.printStackTrace();
 		}
 		
-		final String[] args0={"test2009.xml"};
+		final String[] args0={};
 		if (args==null||args.length==0) args=args0;
 		Installer.launchJSafran(args);
 	}
