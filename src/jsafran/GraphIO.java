@@ -1241,9 +1241,9 @@ public class GraphIO implements GraphProcessor {
                         gsrl.add(g);
                     }
                 }
-                saveConLL09(gs.get(0), gs.get(1), "twolevels.conll09");
+                saveConLL09(gs.get(0), gs.get(1), args[++ai]);
             } else if (args[ai].equals("-saveconll06")) {
-                saveConLL06(gs.get(0), "output.conll06");
+                saveConLL06(gs.get(0), args[++ai]);
 			} else if (args[ai].equals("-saveLevel")) {
 				int l = Integer.parseInt(args[++ai]);
 				gio.save(gs.get(l), "level.xml");
