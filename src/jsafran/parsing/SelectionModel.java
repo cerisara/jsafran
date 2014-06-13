@@ -170,7 +170,6 @@ public class SelectionModel {
 	Unigram fhead = new Unigram();
 	Unigram phead = new Unigram();
 	
-	
 	HashMap<String, Integer> voc = new HashMap<String, Integer>();
 	private int getVocIdx(String w) {
 		Integer i = voc.get(w);

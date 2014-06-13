@@ -35,6 +35,7 @@ import utils.Wait;
 
 public class GraphIO implements GraphProcessor {
 	boolean loadedfromconll = false;
+	public static final String POSD = "POSD", FEATS = "FEATS";
 
 	JFrame jf;
 
@@ -222,7 +223,9 @@ public class GraphIO implements GraphProcessor {
 				String postag=""+col;
 				Mot m = new Mot(mot, lemme, postag);
 				col = st.nextToken(); // col5 = pos2 (plus précis)
+				if (!col.equals("_")) m.addField(POSD, col);
 				col = st.nextToken(); // col6 = genre,nb,pers,mode,...
+                if (!col.equals("_")) m.addField(FEATS, col);
 				if (addAgreement) {
 					// je suppose qu'on a le format du FTB
 					String ag = getAgreement(col);
@@ -1110,8 +1113,11 @@ public class GraphIO implements GraphProcessor {
 					// bugfix: les scripts de conll09 n'acceptent pas les espaces dans un mot !
 					String forme2 = gdep.getMot(i).getForme().trim().replace(' ', '_');
 					String lemme2 = gdep.getMot(i).getLemme().trim().replace(' ', '_');
-					String feat="_";
-					if (true) {
+					String dpos = gdep.getMot(i).getField(POSD);
+					if (dpos==null) dpos="_";
+					String feat=gdep.getMot(i).getField(FEATS);
+					if (feat==null) feat="_";
+					if (false) {
 						// cheat: ajoute les deps comme feats !
 						if (dep>=0) feat = gdep.getDepLabel(dep);
 					}
@@ -1125,26 +1131,26 @@ public class GraphIO implements GraphProcessor {
 							feat+=gdep.groupnoms.get(grps[grp]);
 						}
 					}
-					String s=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+gdep.getMot(i).getPOS()+"\t"+feat+"\t_\t";
+					String ligne=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t_\t";
 					if (dep>=0) {
 						int head = gdep.getHead(dep)+1;
 						String deplab = gdep.getDepLabel(dep);
 						// bugfix pour corriger certaines deps vers ROOT qui sont mal lues en conll08:
 						if (deplab.equals("ROOT"))
-							s+="0\t0\tROOT\tROOT";
+							ligne+="0\t0\tROOT\tROOT";
 						else
-							s+=head+"\t"+head+"\t"+deplab+"\t"+deplab;
+							ligne+=head+"\t"+head+"\t"+deplab+"\t"+deplab;
 					} else {
-						s+="0\t0\tROOT\tROOT";
+						ligne+="0\t0\tROOT\tROOT";
 					}
 					// partie SRL
 					// les predicats
 					{
 						int j = Arrays.binarySearch(preds, i);
 						if (j>=0) {
-							s+="\tY\t"+gsrl.getMot(i).getPOS();
+							ligne+="\tY\t"+gsrl.getMot(i).getPOS();
 						} else {
-							s+="\t_\t_";
+							ligne+="\t_\t_";
 						}
 					}
 					// les arguments
@@ -1163,9 +1169,9 @@ public class GraphIO implements GraphProcessor {
 						args[j]=lab;
 					}
 					for (String x : args) {
-						s+="\t"+x;
+						ligne+="\t"+x;
 					}
-					f.println(s);
+					f.println(ligne);
 				}
 				f.println();
 			}
@@ -1213,15 +1219,31 @@ public class GraphIO implements GraphProcessor {
 			} else if (args[ai].equals("-loadxml")) {
 				List<DetGraph> tmpgs = gio.loadAllGraphs(args[++ai]);
 				gs.add(tmpgs);
+            } else if (args[ai].equals("-loadconll06")) {
+                List<DetGraph> tmpgs = loadConll06(args[++ai], false);
+                gs.add(tmpgs);
 			} else if (args[ai].equals("-loadconll09")) {
 				List<DetGraph>[] tmpgs = loadConll09(args[++ai]);
 				gs.add(tmpgs[0]);
 				gs.add(tmpgs[1]);
+				
 			} else if (args[ai].equals("-cleardeps")) {
 				for (List<DetGraph> gg: gs)
 					for (DetGraph g : gg) g.deps.clear();
-			} else if (args[ai].equals("-saveconll09")) {
-				saveConLL09(gs.get(0), gs.get(1), "twolevels.conll09");
+            } else if (args[ai].equals("-saveconll09")) {
+                if (gs.size()==1) {
+                    // create an empty SRL graph
+                    ArrayList<DetGraph> gsrl = new ArrayList<DetGraph>();
+                    gs.add(gsrl);
+                    for (int i=0;i<gs.get(0).size();i++) {
+                        DetGraph g = gs.get(0).get(i).clone();
+                        g.clearDeps();
+                        gsrl.add(g);
+                    }
+                }
+                saveConLL09(gs.get(0), gs.get(1), "twolevels.conll09");
+            } else if (args[ai].equals("-saveconll06")) {
+                saveConLL06(gs.get(0), "output.conll06");
 			} else if (args[ai].equals("-saveLevel")) {
 				int l = Integer.parseInt(args[++ai]);
 				gio.save(gs.get(l), "level.xml");
