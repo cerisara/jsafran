@@ -362,6 +362,7 @@ public class JSafranGUI extends JPanel {
 		JMenuItem save08 = new JMenuItem("save graphs CoNLL08...");
 		save08.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                if (Srl.graphNormal.size()==0) Srl.graphNormal = main.allgraphs;
 				GraphIO.saveConLL08(Srl.graphNormal,Srl.graphSrl,null);
 			}
 		});

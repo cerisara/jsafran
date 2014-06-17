@@ -26,6 +26,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import jsafran.parsing.ClassificationResult;
+
 import corpus.text.TextSegments;
 import corpus.text.TextSegments.segtypes;
 
@@ -992,9 +994,15 @@ public class GraphIO implements GraphProcessor {
 		try {
 			PrintWriter f = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
 			// chaque dependendance est consideree comme un argument d'un predicat
-			for (int gi=0;gi<gssrl.size();gi++) {
-				DetGraph gsrl = gssrl.get(gi);
-				DetGraph gdep = gsdeps.get(gi);
+			for (int gi=0;gi<gsdeps.size();gi++) {
+                DetGraph gdep = gsdeps.get(gi);
+			    DetGraph gsrl;
+                if (gssrl!=null&&gssrl.size()>gi) {
+                    gsrl = gssrl.get(gi);
+                } else {
+                    gsrl = gdep.getSubGraph(0);
+                    gsrl.deps.clear();
+                }
 				assert gsrl.getNbMots()==gdep.getNbMots();
 				// nb de predicats ?
 				HashSet<Integer> predicats = new HashSet<Integer>();
@@ -1014,9 +1022,15 @@ public class GraphIO implements GraphProcessor {
 
 				// sauvegarde des lignes
 				for (int i=0;i<gsrl.getNbMots();i++) {
+                    String dpos = gdep.getMot(i).getField(POSD);
+                    if (dpos==null) dpos="_";
+                    // there are no FEATS in conll08 !!
+//                    String feat=gdep.getMot(i).getField(FEATS);
+//                    if (feat==null) feat="_";
+
 					// partie syntaxe
 					int dep = gdep.getDep(i);
-					String s=(i+1)+"\t"+gdep.getMot(i).getForme()+"\t"+gdep.getMot(i).getLemme()+"\t"+gdep.getMot(i).getPOS()+"\t"+gdep.getMot(i).getPOS()+"\t"+gdep.getMot(i).getForme()+"\t"+gdep.getMot(i).getLemme()+"\t"+gdep.getMot(i).getPOS()+"\t";
+					String s=(i+1)+"\t"+gdep.getMot(i).getForme()+"\t"+gdep.getMot(i).getLemme()+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+gdep.getMot(i).getForme()+"\t"+gdep.getMot(i).getLemme()+"\t"+gdep.getMot(i).getPOS()+"\t";
 					if (dep>=0) {
 						int head = gdep.getHead(dep)+1;
 						String deplab = gdep.getDepLabel(dep);
@@ -1131,7 +1145,7 @@ public class GraphIO implements GraphProcessor {
 							feat+=gdep.groupnoms.get(grps[grp]);
 						}
 					}
-					String ligne=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t_\t";
+					String ligne=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t"+feat+"\t";
 					if (dep>=0) {
 						int head = gdep.getHead(dep)+1;
 						String deplab = gdep.getDepLabel(dep);
@@ -1252,6 +1266,10 @@ public class GraphIO implements GraphProcessor {
 				for (int i=0;i<gs.size();i++) {
 					gs.set(i, gs.get(i).subList(0, n));
 				}
+            } else if (args[ai].equals("-eval")) {
+                // assumes that the gold graphs are in gs.get(0) and the infered graphs in gs.get(1)
+                float[] las = ClassificationResult.calcErrors(gs.get(1), gs.get(0));
+                System.out.println("LAS "+Arrays.toString(las));
 			} else if (args[ai].equals("-tailhead")) {
 				int n=Integer.parseInt(args[++ai]);
 				for (int i=0;i<gs.size();i++) {
