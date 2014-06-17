@@ -186,59 +186,58 @@ public class GraphIO implements GraphProcessor {
 		return gdeps;
 	}
 
+	private static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
+        DetGraph gdep=new DetGraph();
+        int motidx=0;
+        ArrayList<Integer> onedeps = new ArrayList<Integer>();
+        ArrayList<String> onedepslabs = new ArrayList<String>();
+        for (;;) {
+            String s=f.readLine();
+            if (s==null) return null;
+            s=s.trim();
+            if (s.length()==0) {
+                if (gdep.getNbMots()>0) {
+                    // fin de phrase
+                    assert gdep.getNbMots()==onedeps.size();
+                    assert onedeps.size()==onedepslabs.size();
+                    for (int i=0;i<onedeps.size();i++) {
+                        if (onedeps.get(i)>=0)
+                            gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
+                    }
+                }
+                return gdep;
+            }
+            StringTokenizer st = new StringTokenizer(s,"\t");
+            String col = st.nextToken(); // col1 = numero du mot
+            col = st.nextToken(); // col2 = forme
+            String mot=""+col;
+            col = st.nextToken(); // col3 = lemme
+            String lemme=""+col;
+            col = st.nextToken(); // col4 = pos1
+            String postag=""+col;
+            Mot m = new Mot(mot, lemme, postag);
+            col = st.nextToken(); // col5 = pos2 (plus précis)
+            if (!col.equals("_")) m.addField(POSD, col);
+            col = st.nextToken(); // col6 = genre,nb,pers,mode,...
+            if (!col.equals("_")) m.addField(FEATS, col);
+            gdep.addMot(motidx, m);
+            col = st.nextToken(); // col7 = dep
+            onedeps.add(Integer.parseInt(col)-1);
+            col = st.nextToken(); // col8 = deplab
+            onedepslabs.add(col);
+            motidx++;
+        }
+	}
+	
 	public static List<DetGraph> loadConll06(String filename, boolean addAgreement) {
 		List<DetGraph> gdeps = new ArrayList<DetGraph>();
 		String s=null;
 		try {
 			BufferedReader f = FileUtils.openFileUTF(filename);
-			DetGraph gdep = new DetGraph();
-			int motidx=0;
-			ArrayList<Integer> onedeps = new ArrayList<Integer>();
-			ArrayList<String> onedepslabs = new ArrayList<String>();
 			for (;;) {
-				s=f.readLine();
-				if (s==null) break;
-				s=s.trim();
-				if (s.length()==0) {
-					if (gdep.getNbMots()>0) {
-						// fin de phrase
-						assert gdep.getNbMots()==onedeps.size();
-						assert onedeps.size()==onedepslabs.size();
-						for (int i=0;i<onedeps.size();i++) {
-							if (onedeps.get(i)>=0)
-								gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
-						}
-						gdeps.add(gdep);
-					}
-					gdep=new DetGraph();
-					motidx=0;
-					onedeps.clear(); onedepslabs.clear();
-					continue;
-				}
-				StringTokenizer st = new StringTokenizer(s,"\t");
-				String col = st.nextToken(); // col1 = numero du mot
-				col = st.nextToken(); // col2 = forme
-				String mot=""+col;
-				col = st.nextToken(); // col3 = lemme
-				String lemme=""+col;
-				col = st.nextToken(); // col4 = pos1
-				String postag=""+col;
-				Mot m = new Mot(mot, lemme, postag);
-				col = st.nextToken(); // col5 = pos2 (plus précis)
-				if (!col.equals("_")) m.addField(POSD, col);
-				col = st.nextToken(); // col6 = genre,nb,pers,mode,...
-                if (!col.equals("_")) m.addField(FEATS, col);
-				if (addAgreement) {
-					// je suppose qu'on a le format du FTB
-					String ag = getAgreement(col);
-					if (ag!=null) m.setPOS(m.getPOS()+ag);
-				}
-				gdep.addMot(motidx, m);
-				col = st.nextToken(); // col7 = dep
-				onedeps.add(Integer.parseInt(col)-1);
-				col = st.nextToken(); // col8 = deplab
-				onedepslabs.add(col);
-				motidx++;
+	            DetGraph g = loadConll06OneSentence(f);
+	            if (g==null) break;
+	            if (g.getNbMots()>0) gdeps.add(g);
 			}
 			f.close();
 		} catch (UnsupportedEncodingException e) {
@@ -1077,8 +1076,95 @@ public class GraphIO implements GraphProcessor {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
+	
+	private static void saveConll09OneSentence(DetGraph gdep, DetGraph gsrl, PrintWriter f) {
+        assert gsrl.getNbMots()==gdep.getNbMots();
+        // nb de predicats ?
+        HashSet<Integer> predicats = new HashSet<Integer>();
+        for (int i=0;i<gsrl.getNbMots();i++) {
+            String sense = gsrl.getMot(i).getPOS();
+            if (!sense.equals("_")) predicats.add(i);
+        }
+        int[] preds = new int[predicats.size()];
+        Iterator<Integer> predit = predicats.iterator();
+        for (int i=0;i<preds.length;i++) {
+            preds[i] = predit.next();
+        }
+        Arrays.sort(preds);
+
+        //              ID FORM LEMMA PLEMMA POS PPOS FEAT PFEAT HEAD PHEAD DEPREL PDEPREL FILLPRED PRED APREDs 
+
+        // sauvegarde des lignes
+        for (int i=0;i<gsrl.getNbMots();i++) {
+            // partie syntaxe
+            int dep = gdep.getDep(i);
+            // bugfix: les scripts de conll09 n'acceptent pas les espaces dans un mot !
+            String forme2 = gdep.getMot(i).getForme().trim().replace(' ', '_');
+            String lemme2 = gdep.getMot(i).getLemme().trim().replace(' ', '_');
+            String dpos = gdep.getMot(i).getField(POSD);
+            if (dpos==null) dpos="_";
+            String feat=gdep.getMot(i).getField(FEATS);
+            if (feat==null) feat="_";
+            if (false) {
+                // cheat: ajoute les deps comme feats !
+                if (dep>=0) feat = gdep.getDepLabel(dep);
+            }
+            if (false) {
+                // ajoute les groupes (entites nommees ?) comme features
+                int[] grps = gdep.getGroups(i);
+                if (grps!=null&&grps.length>0) {
+                    feat="";
+                    int grp=0;
+                    for (grp=0;grp<grps.length-1;grp++) feat+=gdep.groupnoms.get(grps[grp])+"|";
+                    feat+=gdep.groupnoms.get(grps[grp]);
+                }
+            }
+            String ligne=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t"+feat+"\t";
+            if (dep>=0) {
+                int head = gdep.getHead(dep)+1;
+                String deplab = gdep.getDepLabel(dep);
+                // bugfix pour corriger certaines deps vers ROOT qui sont mal lues en conll08:
+                if (deplab.equals("ROOT"))
+                    ligne+="0\t0\tROOT\tROOT";
+                else
+                    ligne+=head+"\t"+head+"\t"+deplab+"\t"+deplab;
+            } else {
+                ligne+="0\t0\tROOT\tROOT";
+            }
+            // partie SRL
+            // les predicats
+            {
+                int j = Arrays.binarySearch(preds, i);
+                if (j>=0) {
+                    ligne+="\tY\t"+gsrl.getMot(i).getPOS();
+                } else {
+                    ligne+="\t_\t_";
+                }
+            }
+            // les arguments
+            String[] args = new String[predicats.size()];
+            Arrays.fill(args, "_");
+            int[] deps = gsrl.getDeps(i);
+            for (int d : deps) {
+                int head = gsrl.getHead(d);
+                int j = Arrays.binarySearch(preds, head);
+                if (j<0) {
+                    System.out.println("ERROR saved conll09 "+Arrays.toString(preds)+" "+head+" "+i);
+                    DetGraph[] gg = {gdep,gsrl};
+                    JSafran.viewGraph(gg);
+                }
+                String lab = gsrl.getDepLabel(d);
+                args[j]=lab;
+            }
+            for (String x : args) {
+                ligne+="\t"+x;
+            }
+            f.println(ligne);
+        }
+        f.println();
+	}
+	
 	/**
 	 * WARNING: we assume that the predicate sense is stored in the POSTAG field of the semantic DetGraph
 	 * 
@@ -1098,96 +1184,13 @@ public class GraphIO implements GraphProcessor {
 			for (int gi=0;gi<gsdeps.size();gi++) {
 				DetGraph gdep = gsdeps.get(gi);
 				DetGraph gsrl;
-				if (gssrl!=null&&gssrl.size()>gi) {
-					gsrl = gssrl.get(gi);
-				} else {
-					gsrl = gdep.getSubGraph(0);
-					gsrl.deps.clear();
-				}
-				assert gsrl.getNbMots()==gdep.getNbMots();
-				// nb de predicats ?
-				HashSet<Integer> predicats = new HashSet<Integer>();
-				for (int i=0;i<gsrl.getNbMots();i++) {
-					String sense = gsrl.getMot(i).getPOS();
-					if (!sense.equals("_")) predicats.add(i);
-				}
-				int[] preds = new int[predicats.size()];
-				Iterator<Integer> predit = predicats.iterator();
-				for (int i=0;i<preds.length;i++) {
-					preds[i] = predit.next();
-				}
-				Arrays.sort(preds);
-
-				//				ID FORM LEMMA PLEMMA POS PPOS FEAT PFEAT HEAD PHEAD DEPREL PDEPREL FILLPRED PRED APREDs 
-
-				// sauvegarde des lignes
-				for (int i=0;i<gsrl.getNbMots();i++) {
-					// partie syntaxe
-					int dep = gdep.getDep(i);
-					// bugfix: les scripts de conll09 n'acceptent pas les espaces dans un mot !
-					String forme2 = gdep.getMot(i).getForme().trim().replace(' ', '_');
-					String lemme2 = gdep.getMot(i).getLemme().trim().replace(' ', '_');
-					String dpos = gdep.getMot(i).getField(POSD);
-					if (dpos==null) dpos="_";
-					String feat=gdep.getMot(i).getField(FEATS);
-					if (feat==null) feat="_";
-					if (false) {
-						// cheat: ajoute les deps comme feats !
-						if (dep>=0) feat = gdep.getDepLabel(dep);
-					}
-					if (false) {
-						// ajoute les groupes (entites nommees ?) comme features
-						int[] grps = gdep.getGroups(i);
-						if (grps!=null&&grps.length>0) {
-							feat="";
-							int grp=0;
-							for (grp=0;grp<grps.length-1;grp++) feat+=gdep.groupnoms.get(grps[grp])+"|";
-							feat+=gdep.groupnoms.get(grps[grp]);
-						}
-					}
-					String ligne=(i+1)+"\t"+forme2+"\t"+lemme2+"\t"+lemme2+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t"+feat+"\t";
-					if (dep>=0) {
-						int head = gdep.getHead(dep)+1;
-						String deplab = gdep.getDepLabel(dep);
-						// bugfix pour corriger certaines deps vers ROOT qui sont mal lues en conll08:
-						if (deplab.equals("ROOT"))
-							ligne+="0\t0\tROOT\tROOT";
-						else
-							ligne+=head+"\t"+head+"\t"+deplab+"\t"+deplab;
-					} else {
-						ligne+="0\t0\tROOT\tROOT";
-					}
-					// partie SRL
-					// les predicats
-					{
-						int j = Arrays.binarySearch(preds, i);
-						if (j>=0) {
-							ligne+="\tY\t"+gsrl.getMot(i).getPOS();
-						} else {
-							ligne+="\t_\t_";
-						}
-					}
-					// les arguments
-					String[] args = new String[predicats.size()];
-					Arrays.fill(args, "_");
-					int[] deps = gsrl.getDeps(i);
-					for (int d : deps) {
-						int head = gsrl.getHead(d);
-						int j = Arrays.binarySearch(preds, head);
-						if (j<0) {
-							System.out.println("ERROR saved conll09 "+Arrays.toString(preds)+" "+head+" "+i);
-							DetGraph[] gg = {gdep,gsrl};
-							JSafran.viewGraph(gg);
-						}
-						String lab = gsrl.getDepLabel(d);
-						args[j]=lab;
-					}
-					for (String x : args) {
-						ligne+="\t"+x;
-					}
-					f.println(ligne);
-				}
-				f.println();
+		        if (gssrl!=null&&gssrl.size()>gi) {
+		            gsrl = gssrl.get(gi);
+		        } else {
+		            gsrl = gdep.getSubGraph(0);
+		            gsrl.deps.clear();
+		        }
+		        saveConll09OneSentence(gdep, gsrl, f);
 			}
 			f.close();
 		} catch (FileNotFoundException e) {
@@ -1196,11 +1199,29 @@ public class GraphIO implements GraphProcessor {
 
 	}
 
+	private static void convert06to09(String co06, String co09) {
+	    System.out.println("convert conll06 to conll09 large files");
+	    try {
+	        BufferedReader fin = FileUtils.openFileUTF(co06);
+	        PrintWriter fout = FileUtils.writeFileUTF(co09);
+	        for (;;) {
+	            DetGraph g = loadConll06OneSentence(fin);
+	            if (g==null) break;
+	            DetGraph gsrl = g.clone();
+	            gsrl.clearDeps();
+	            saveConll09OneSentence(g, gsrl, fout);
+	        }
+	        fout.close();
+	        fin.close();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 	public static void main(String args[]) {
-		GraphIO gio = new GraphIO(null);
-		int ai=0;
-		List<List<DetGraph>> gs = new ArrayList<List<DetGraph>>();
+	    GraphIO gio = new GraphIO(null);
+	    int ai=0;
+	    List<List<DetGraph>> gs = new ArrayList<List<DetGraph>>();
 		while (ai<args.length) {
 			if (args[ai].equals("-savelab")) {
 				// TODO: old stuff, fix it !
@@ -1256,6 +1277,8 @@ public class GraphIO implements GraphProcessor {
                     }
                 }
                 saveConLL09(gs.get(0), gs.get(1), args[++ai]);
+            } else if (args[ai].equals("-conll06to09")) {
+                convert06to09(args[++ai],args[++ai]);
             } else if (args[ai].equals("-saveconll06")) {
                 saveConLL06(gs.get(0), args[++ai]);
 			} else if (args[ai].equals("-saveLevel")) {
