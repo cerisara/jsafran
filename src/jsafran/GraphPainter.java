@@ -31,8 +31,10 @@ public class GraphPainter {
 			int nbnodes = main.allgraphs.get(graphidx).getNbMots();
 
 			Graphics2D g2 = (Graphics2D) g;
-			Font font = Font.decode("arial PLAIN " + fontDim);
-			Font fontedit = Font.decode("arial ITALIC " + fontDim);
+			Font font = new java.awt.Font("Arial Unicode MS", java.awt.Font.PLAIN, fontDim);
+//			        Font.decode("arial PLAIN " + fontDim);
+			Font fontedit = new java.awt.Font("Arial Unicode MS", java.awt.Font.ITALIC, fontDim);
+//			        Font.decode("arial ITALIC " + fontDim);
 			Font fontconf = Font.decode("times PLAIN 9");
 			FontRenderContext frc = g2.getFontRenderContext();
 
