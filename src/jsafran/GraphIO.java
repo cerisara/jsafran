@@ -217,9 +217,9 @@ public class GraphIO implements GraphProcessor {
             String postag=""+col;
             Mot m = new Mot(mot, lemme, postag);
             col = st.nextToken(); // col5 = pos2 (plus précis)
-            if (!col.equals("_")) m.addField(POSD, col);
+            if (!col.equals("_")) m.setField(POSD, col);
             col = st.nextToken(); // col6 = genre,nb,pers,mode,...
-            if (!col.equals("_")) m.addField(FEATS, col);
+            if (!col.equals("_")) m.setField(FEATS, col);
             gdep.addMot(motidx, m);
             col = st.nextToken(); // col7 = dep
             onedeps.add(Integer.parseInt(col)-1);
@@ -1254,6 +1254,10 @@ public class GraphIO implements GraphProcessor {
 			} else if (args[ai].equals("-loadxml")) {
 				List<DetGraph> tmpgs = gio.loadAllGraphs(args[++ai]);
 				gs.add(tmpgs);
+            } else if (args[ai].equals("-keepPOS1")) {
+                for (List<DetGraph> gg : gs) {for (DetGraph g : gg) {for (int i=0;i<g.getNbMots();i++) g.getMot(i).setField(POSD,g.getMot(i).getPOS());}}
+            } else if (args[ai].equals("-keepPOS2")) {
+                for (List<DetGraph> gg : gs) {for (DetGraph g : gg) {for (int i=0;i<g.getNbMots();i++) g.getMot(i).setPOS(g.getMot(i).getField(POSD));}}
             } else if (args[ai].equals("-loadconll06")) {
                 List<DetGraph> tmpgs = loadConll06(args[++ai], false);
                 gs.add(tmpgs);

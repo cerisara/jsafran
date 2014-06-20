@@ -33,7 +33,7 @@ public class Mot implements Serializable {
 		postag="unk";
 	}
 	
-	public void addField(String key, String v) {
+	public void setField(String key, String v) {
 	    if (otherFields==null) otherFields=new HashMap<String, String>();
 	    otherFields.put(key, v);
 	}
