@@ -186,7 +186,7 @@ public class GraphIO implements GraphProcessor {
 		return gdeps;
 	}
 
-	private static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
+	public static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
         DetGraph gdep=new DetGraph();
         int motidx=0;
         ArrayList<Integer> onedeps = new ArrayList<Integer>();
