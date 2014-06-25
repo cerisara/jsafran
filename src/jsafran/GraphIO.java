@@ -187,53 +187,60 @@ public class GraphIO implements GraphProcessor {
 	}
 
 	public static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
-        DetGraph gdep=new DetGraph();
-        int motidx=0;
-        ArrayList<Integer> onedeps = new ArrayList<Integer>();
-        ArrayList<String> onedepslabs = new ArrayList<String>();
-        for (;;) {
-            String s=f.readLine();
-            if (s==null) return null;
-            s=s.trim();
-            if (s.length()==0) {
-                if (gdep.getNbMots()>0) {
-                    // fin de phrase
-                    assert gdep.getNbMots()==onedeps.size();
-                    assert onedeps.size()==onedepslabs.size();
-                    for (int i=0;i<onedeps.size();i++) {
-                        if (onedeps.get(i)>=0)
-                            gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
-                    }
-                }
-                return gdep;
-            }
-            StringTokenizer st = new StringTokenizer(s,"\t");
-            String col = st.nextToken(); // col1 = numero du mot
-            col = st.nextToken(); // col2 = forme
-            String mot=""+col;
-            col = st.nextToken(); // col3 = lemme
-            String lemme=""+col;
-            col = st.nextToken(); // col4 = pos1
-            String postag=""+col;
-            Mot m = new Mot(mot, lemme, postag);
-            col = st.nextToken(); // col5 = pos2 (plus précis)
-            if (!col.equals("_")) m.setField(POSD, col);
-            col = st.nextToken(); // col6 = genre,nb,pers,mode,...
-            if (!col.equals("_")) m.setField(FEATS, col);
-            gdep.addMot(motidx, m);
-            col = st.nextToken(); // col7 = dep
-            onedeps.add(Integer.parseInt(col)-1);
-            col = st.nextToken(); // col8 = deplab
-            onedepslabs.add(col);
-            motidx++;
-        }
+	    DetGraph gdep=new DetGraph();
+	    int motidx=0;
+	    ArrayList<Integer> onedeps = new ArrayList<Integer>();
+	    ArrayList<String> onedepslabs = new ArrayList<String>();
+	    long ligne=0;
+	    try {
+	        for (;;ligne++) {
+	            String s=f.readLine();
+	            if (s==null) return null;
+	            s=s.trim();
+	            if (s.length()==0) {
+	                if (gdep.getNbMots()>0) {
+	                    // fin de phrase
+	                    assert gdep.getNbMots()==onedeps.size();
+	                    assert onedeps.size()==onedepslabs.size();
+	                    for (int i=0;i<onedeps.size();i++) {
+	                        if (onedeps.get(i)>=0)
+	                            gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
+	                    }
+	                }
+	                return gdep;
+	            }
+	            StringTokenizer st = new StringTokenizer(s,"\t");
+	            String col = st.nextToken(); // col1 = numero du mot
+	            col = st.nextToken(); // col2 = forme
+	            String mot=""+col;
+	            col = st.nextToken(); // col3 = lemme
+	            String lemme=""+col;
+	            col = st.nextToken(); // col4 = pos1
+	            String postag=""+col;
+	            Mot m = new Mot(mot, lemme, postag);
+	            col = st.nextToken(); // col5 = pos2 (plus précis)
+	            if (!col.equals("_")) m.setField(POSD, col);
+	            col = st.nextToken(); // col6 = genre,nb,pers,mode,...
+	            if (!col.equals("_")) m.setField(FEATS, col);
+	            gdep.addMot(motidx, m);
+	            col = st.nextToken(); // col7 = dep
+	            onedeps.add(Integer.parseInt(col)-1);
+	            col = st.nextToken(); // col8 = deplab
+	            onedepslabs.add(col);
+	            motidx++;
+	        }
+	    } catch (Exception e) {
+	        System.err.println("Exception when reading conll06 at line "+ligne);
+	        e.printStackTrace();
+	        return null;
+	    }
 	}
-	
+
 	public static List<DetGraph> loadConll06(String filename, boolean addAgreement) {
-		List<DetGraph> gdeps = new ArrayList<DetGraph>();
-		String s=null;
-		try {
-			BufferedReader f = FileUtils.openFileUTF(filename);
+	    List<DetGraph> gdeps = new ArrayList<DetGraph>();
+	    String s=null;
+	    try {
+	        BufferedReader f = FileUtils.openFileUTF(filename);
 			for (;;) {
 	            DetGraph g = loadConll06OneSentence(f);
 	            if (g==null) break;
