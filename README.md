@@ -1,7 +1,7 @@
 JSafran
 =======
 
-Syntactic parser for French (and English).
+Java GUI for editing/parsing dependency trees.
 
 Main features:
 
@@ -9,7 +9,8 @@ Main features:
 * Multi-levels: chunks, dep. trees, semantic graphs...
 * Include the MATE and Malt parsers, and the Treetagger for automatic training and parsing
 * Regular-expression based query/edition language
-* Beta code for unsupervised dependency parsing
+* Beta code for unsupervised dependency parsing with manual rules
+* Beta code for collaborative edition via GIT
 
 How to compile
 --------------
