@@ -186,15 +186,16 @@ public class GraphIO implements GraphProcessor {
 		return gdeps;
 	}
 
+	static long ligne=0;
 	public static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
 	    DetGraph gdep=new DetGraph();
 	    int motidx=0;
 	    ArrayList<Integer> onedeps = new ArrayList<Integer>();
 	    ArrayList<String> onedepslabs = new ArrayList<String>();
-	    long ligne=0;
+	    String s="";
 	    try {
 	        for (;;ligne++) {
-	            String s=f.readLine();
+	            s=f.readLine();
 	            if (s==null) return null;
 	            s=s.trim();
 	            if (s.length()==0) {
@@ -230,7 +231,7 @@ public class GraphIO implements GraphProcessor {
 	            motidx++;
 	        }
 	    } catch (Exception e) {
-	        System.err.println("Exception when reading conll06 at line "+ligne);
+	        System.err.println("Exception when reading conll06 at line "+ligne+" ["+s+"]");
 	        e.printStackTrace();
 	        return null;
 	    }
