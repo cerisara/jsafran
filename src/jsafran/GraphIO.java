@@ -202,14 +202,13 @@ public class GraphIO implements GraphProcessor {
 	            if (s.length()==0) {
 	                if (gdep.getNbMots()>0) {
 	                    // fin de phrase
-	                    assert gdep.getNbMots()==onedeps.size();
-	                    assert onedeps.size()==onedepslabs.size();
 	                    if (explicitRootNode) gdep.addMot(motidx, Mot.getRootNode());
 	                    for (int i=0;i<onedeps.size();i++) {
 	                        if (onedeps.get(i)>=0)
 	                            gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
-	                        else if (explicitRootNode && onedeps.get(i)==-1)
-                                gdep.ajoutDep(onedepslabs.get(i), motidx, onedeps.get(i));
+	                        else if (explicitRootNode && onedeps.get(i)==-1) {
+                                gdep.ajoutDep(onedepslabs.get(i), i, motidx);
+	                        }
 	                    }
 	                }
 	                return gdep;
