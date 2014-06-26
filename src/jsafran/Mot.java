@@ -33,6 +33,15 @@ public class Mot implements Serializable {
 		postag="unk";
 	}
 	
+	private static Mot rootNode = null;
+	public static Mot getRootNode() {
+	    if (rootNode==null) {
+	        final String rt = "ROOT";
+	        rootNode=new Mot(rt, rt, rt);
+	    }
+	    return rootNode;
+	}
+	
 	public void setField(String key, String v) {
 	    if (otherFields==null) otherFields=new HashMap<String, String>();
 	    otherFields.put(key, v);

@@ -193,6 +193,7 @@ public class GraphIO implements GraphProcessor {
 	    ArrayList<Integer> onedeps = new ArrayList<Integer>();
 	    ArrayList<String> onedepslabs = new ArrayList<String>();
 	    String s="";
+	    boolean explicitRootNode=false;
 	    try {
 	        for (;;ligne++) {
 	            s=f.readLine();
@@ -203,9 +204,12 @@ public class GraphIO implements GraphProcessor {
 	                    // fin de phrase
 	                    assert gdep.getNbMots()==onedeps.size();
 	                    assert onedeps.size()==onedepslabs.size();
+	                    if (explicitRootNode) gdep.addMot(motidx, Mot.getRootNode());
 	                    for (int i=0;i<onedeps.size();i++) {
 	                        if (onedeps.get(i)>=0)
 	                            gdep.ajoutDep(onedepslabs.get(i), i, onedeps.get(i));
+	                        else if (explicitRootNode && onedeps.get(i)==-1)
+                                gdep.ajoutDep(onedepslabs.get(i), motidx, onedeps.get(i));
 	                    }
 	                }
 	                return gdep;
@@ -225,9 +229,11 @@ public class GraphIO implements GraphProcessor {
 	            if (!col.equals("_")) m.setField(FEATS, col);
 	            gdep.addMot(motidx, m);
 	            col = st.nextToken(); // col7 = dep
-	            onedeps.add(Integer.parseInt(col)-1);
+	            int head = Integer.parseInt(col)-1;
+	            onedeps.add(head);
 	            col = st.nextToken(); // col8 = deplab
 	            onedepslabs.add(col);
+	            if (head==-1&&!col.equals("ROOT")) explicitRootNode=true;
 	            motidx++;
 	        }
 	    } catch (Exception e) {
@@ -780,17 +786,22 @@ public class GraphIO implements GraphProcessor {
 		return gs;
 	}
 
-	public static void saveConLL06(List<DetGraph> gs, String filename) {
-		try {
-			PrintWriter fout = FileUtils.writeFileUTF(filename);
-			Syntex2conll conllwriter = new Syntex2conll(fout);
-			for (DetGraph g : gs) {
-				conllwriter.processGraph(g);
-			}
-			conllwriter.terminate();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public static void saveConLL06(List<DetGraph> gsdeps, String filename) {
+        if (filename==null) {
+            GraphIO gio = new GraphIO(null);
+            filename=gio.askForSaveName();
+        }
+        try {
+            System.err.println("nutts "+gsdeps.size());
+            PrintWriter f = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
+            for (int gi=0;gi<gsdeps.size();gi++) {
+                DetGraph gdep = gsdeps.get(gi);
+                saveConll06OneSentence(gdep, f);
+            }
+            f.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**
@@ -1082,16 +1093,48 @@ public class GraphIO implements GraphProcessor {
 			}
 			f.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		    e.printStackTrace();
 		}
 	}
-	
+
+	public static void saveConll06OneSentence(DetGraph gdep, PrintWriter f) {
+	    // ID FORM LEMMA POS DPOS FEAT HEAD DEPREL ProjHEAD ProjDEPREL
+
+	    // sauvegarde des lignes
+	    int nmots = gdep.getNbMots();
+	    if (gdep.getMot(nmots-1)==Mot.getRootNode()) nmots--;
+	    for (int i=0;i<nmots;i++) {
+	        String forme = gdep.getMot(i).getForme();
+	        String lemme = gdep.getMot(i).getLemme();
+	        String dpos = gdep.getMot(i).getField(POSD);
+	        if (dpos==null) dpos="_";
+	        String feat=gdep.getMot(i).getField(FEATS);
+	        if (feat==null) feat="_";
+	        String ligne=(i+1)+"\t"+forme+"\t"+lemme+"\t"+gdep.getMot(i).getPOS()+"\t"+dpos+"\t"+feat+"\t";
+            int dep = gdep.getDep(i);
+	        if (dep>=0) {
+                String deplab = gdep.getDepLabel(dep);
+	            int head = gdep.getHead(dep)+1;
+	            if (head>=nmots) {
+	                // explicit root note
+                    ligne+="0\t"+deplab;
+	            } else 
+	                ligne+=head+"\t"+deplab;
+	        } else {
+	            ligne+="0\tROOT";
+	        }
+	        ligne += "\t_\t_";
+	        f.println(ligne);
+	    }
+	    f.println();
+	}
+
 	private static void saveConll09OneSentence(DetGraph gdep, DetGraph gsrl, PrintWriter f) {
-        assert gsrl.getNbMots()==gdep.getNbMots();
-        // nb de predicats ?
-        HashSet<Integer> predicats = new HashSet<Integer>();
-        for (int i=0;i<gsrl.getNbMots();i++) {
-            String sense = gsrl.getMot(i).getPOS();
+	    assert gsrl.getNbMots()==gdep.getNbMots();
+	    // nb de predicats ?
+	    HashSet<Integer> predicats = new HashSet<Integer>();
+	    for (int i=0;i<gsrl.getNbMots();i++) {
+	        String sense = gsrl.getMot(i).getPOS();
             if (!sense.equals("_")) predicats.add(i);
         }
         int[] preds = new int[predicats.size()];
@@ -1204,7 +1247,6 @@ public class GraphIO implements GraphProcessor {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	private static void convert06to09(String co06, String co09) {
