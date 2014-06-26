@@ -186,6 +186,13 @@ public class GraphIO implements GraphProcessor {
 		return gdeps;
 	}
 
+	public static void removeRootNode(DetGraph g) {
+	    if (g.getNbMots()>0 && g.getMot(g.getNbMots()-1).isRoot()) {
+	        int rootidx = g.getNbMots()-1;
+	        g.delNodes(rootidx, rootidx);
+	    }
+	}
+	
 	static long ligne=0;
 	public static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
 	    DetGraph gdep=new DetGraph();
@@ -1101,7 +1108,7 @@ public class GraphIO implements GraphProcessor {
 
 	    // sauvegarde des lignes
 	    int nmots = gdep.getNbMots();
-	    if (gdep.getMot(nmots-1)==Mot.getRootNode()) nmots--;
+	    if (gdep.getMot(nmots-1).isRoot()) nmots--;
 	    for (int i=0;i<nmots;i++) {
 	        String forme = gdep.getMot(i).getForme();
 	        String lemme = gdep.getMot(i).getLemme();

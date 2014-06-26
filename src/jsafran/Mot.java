@@ -33,9 +33,12 @@ public class Mot implements Serializable {
 		postag="unk";
 	}
 	
+    final static String rt = "ROOT";
 	public static Mot getRootNode() {
-        final String rt = "ROOT";
         return new Mot(rt, rt, rt);
+	}
+	public boolean isRoot() {
+	    return getForme()==rt;
 	}
 	
 	public void setField(String key, String v) {
