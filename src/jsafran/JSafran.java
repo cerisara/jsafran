@@ -1203,7 +1203,7 @@ public class JSafran extends JPanel {
                 }
             }
             if (deps.size()>0) {
-                Dep.depnoms = new String[0];
+//                Dep.depnoms = new String[0];
                 for (int i=0;i<deps.size();i++)
                     Dep.addType(deps.get(i));
             }
