@@ -235,7 +235,9 @@ public class GraphIO implements GraphProcessor {
 	            if (!col.equals("_")) m.setField(FEATS, col);
 	            gdep.addMot(motidx, m);
 	            col = st.nextToken(); // col7 = dep
-	            int head = Integer.parseInt(col)-1;
+	            int head = -1;
+	            if (col.length()>0&&col.charAt(0)>='0'&&col.charAt(0)<='9')
+	            	head = Integer.parseInt(col)-1;
 	            onedeps.add(head);
 	            col = st.nextToken(); // col8 = deplab
 	            onedepslabs.add(col);
