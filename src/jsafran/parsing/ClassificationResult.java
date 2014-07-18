@@ -14,7 +14,10 @@ public class ClassificationResult {
 	public static boolean isWordCorrect(DetGraph grec, DetGraph gref, int w) {
         int d=grec.getDep(w);
         int dg=gref.getDep(w);
-	    if (d<0 && dg>=0) return false;
+	    if (d<0) {
+	        if (dg>=0) return false;
+	        else return true;
+	    }
 	    int h=grec.getHead(d);
 	    int hg=gref.getHead(dg);
 	    if (h!=hg) return false;
