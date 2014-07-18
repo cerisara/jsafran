@@ -11,6 +11,19 @@ import jsafran.DetGraph;
 public class ClassificationResult {
 	public static ArrayList<int[]> errors;
 	
+	public static boolean isWordCorrect(DetGraph grec, DetGraph gref, int w) {
+        int d=grec.getDep(w);
+        int dg=gref.getDep(w);
+	    if (d<0 && dg>=0) return false;
+	    int h=grec.getHead(d);
+	    int hg=gref.getHead(dg);
+	    if (h!=hg) return false;
+        int l=grec.deps.get(d).type;
+        int lg=gref.deps.get(dg).type;
+        if (l!=lg) return false;
+        return true;
+	}
+	
 	public static float[] calcErrors(List<DetGraph> grecs, List<DetGraph> grefs) {
 		errors = new ArrayList<int[]>();
 		int ndel=0,nins=0,nsub=0,nhead=0,nokLAS=0,ntot=0,nokUAS=0;
