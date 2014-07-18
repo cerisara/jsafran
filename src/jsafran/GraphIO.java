@@ -243,7 +243,7 @@ public class GraphIO implements GraphProcessor {
 	            onedepslabs.add(col);
 	            // dans le corpus spmrl, il y a parfois des root nodes explicites avec des labels informatifs (differents de ROOT)
 	            // dans ce cas, le head==0 (hors de la phrase)
-	            if (head==-1&&!col.toLowerCase().equals("root")) explicitRootNode=true;
+//	            if (head==-1&&!col.toLowerCase().equals("root")) explicitRootNode=true;
 	            motidx++;
 	        }
 	    } catch (Exception e) {
