@@ -235,13 +235,15 @@ public class GraphIO implements GraphProcessor {
 	            if (!col.equals("_")) m.setField(FEATS, col);
 	            gdep.addMot(motidx, m);
 	            col = st.nextToken(); // col7 = dep
-	            int head = -1;
+	            int head = -2;
 	            if (col.length()>0&&col.charAt(0)>='0'&&col.charAt(0)<='9')
 	            	head = Integer.parseInt(col)-1;
 	            onedeps.add(head);
 	            col = st.nextToken(); // col8 = deplab
 	            onedepslabs.add(col);
-	            if (head==-1&&!col.equals("ROOT")) explicitRootNode=true;
+	            // dans le corpus spmrl, il y a parfois des root nodes explicites avec des labels informatifs (differents de ROOT)
+	            // dans ce cas, le head==0 (hors de la phrase)
+	            if (head==-1&&!col.toLowerCase().equals("root")) explicitRootNode=true;
 	            motidx++;
 	        }
 	    } catch (Exception e) {
