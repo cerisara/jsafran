@@ -236,7 +236,8 @@ public class MSTParser {
                                else featocc[feats[k]]--;
                        }
                }
-               QuickSort.sort(featocc, featidx);
+               QuickSort qs = new QuickSort();
+               qs.sort(featocc, featidx);
                System.out.print("most important features: ");
                for (int i=0;i<10&&i<nparms;i++) {
                    String ff = "";

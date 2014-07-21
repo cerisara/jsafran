@@ -9,11 +9,11 @@ package utils;
  *
  */
 public class QuickSort {
-    static private float[] numbers;
-    static private int[] idx;
-    static private int number;
+    private float[] numbers;
+    private int[] idx;
+    private int number;
 
-    public static void sort(float[] values, int[] indexes) {
+    public void sort(float[] values, int[] indexes) {
         // check for empty or null array
         if (values ==null || values.length==0){
             return;
@@ -24,7 +24,7 @@ public class QuickSort {
         quicksort(0, number - 1);
     }
 
-    private static void quicksort(int low, int high) {
+    private void quicksort(int low, int high) {
         int i = low, j = high;
         // Get the pivot element from the middle of the list
         float pivot = numbers[low + (high-low)/2];
@@ -60,7 +60,7 @@ public class QuickSort {
             quicksort(i, high);
     }
 
-    private static void exchange(int i, int j) {
+    private void exchange(int i, int j) {
         {
             float temp = numbers[i];
             numbers[i] = numbers[j];
