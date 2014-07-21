@@ -194,6 +194,13 @@ public class GraphIO implements GraphProcessor {
 	}
 	
 	static long ligne=0;
+	public static final DetGraph ERRORGRAPH = new DetGraph();
+	/**
+	 * 
+	 * @param f
+	 * @return the next single graph read from the file, or NULL if the end of file has been reached, or ERRORGRAPH if the next graph is badly formed 
+	 * @throws IOException
+	 */
 	public static DetGraph loadConll06OneSentence(BufferedReader f) throws IOException {
 	    DetGraph gdep=new DetGraph();
 	    int motidx=0;
@@ -247,9 +254,16 @@ public class GraphIO implements GraphProcessor {
 	            motidx++;
 	        }
 	    } catch (Exception e) {
-	        System.err.println("Exception when reading conll06 at line "+ligne+" ["+s+"]");
-	        e.printStackTrace();
-	        return null;
+	        System.err.println("Skip sentence: Wrong conll06 format at line "+ligne+" ["+s+"]");
+	        // keep on reading the rest of the current graph
+	        for (;;ligne++) {
+                s=f.readLine();
+                if (s==null) return null;
+                s=s.trim();
+                if (s.length()==0) {
+                    return ERRORGRAPH;
+                }
+	        }
 	    }
 	}
 
