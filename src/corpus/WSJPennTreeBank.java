@@ -101,6 +101,15 @@ public class WSJPennTreeBank {
         return res;
     }
     
+    public static List<DetGraph> getWSJ10() {
+        WSJPennTreeBank c = new WSJPennTreeBank();
+        List<DetGraph> gs = c.load();
+        System.out.println(gs.size());
+        c.delponct(gs);
+        List<DetGraph> wsj10 = c.filter10(gs);
+        return wsj10;
+    }
+    
     public static void main(String args[]) {
         WSJPennTreeBank c = new WSJPennTreeBank();
         List<DetGraph> gs = c.load();
