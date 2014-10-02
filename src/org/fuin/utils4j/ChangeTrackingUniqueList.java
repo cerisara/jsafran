@@ -31,7 +31,7 @@ import java.util.ListIterator;
  * - This is like a {@link java.util.Set} but at the same time ordered like a {@link List}
  * . It's also possible to revert all changes.
  */
-public class ChangeTrackingUniqueList implements List, Taggable {
+public class ChangeTrackingUniqueList {
 
     private final List list;
 
