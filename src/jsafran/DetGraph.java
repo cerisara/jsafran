@@ -61,6 +61,34 @@ public class DetGraph implements Serializable {
 		}
 	}
 	
+	public int countNonProjectiveArcs() {
+		int ncrosscut=0;
+		for (int i=0;i<getNbMots();i++) {
+			int d=getDep(i);
+			if (d>=0) {
+				int h=getHead(d);
+				if (h>i) {
+					for (int j=i+1;j<h;j++) {
+						d=getDep(j);
+						if (d>=0) {
+							int hh=getHead(d);
+							if (hh>h||hh<i) ncrosscut++;
+						} else ncrosscut++;
+					}
+				} else {
+					for (int j=i-1;j>h;j--) {
+						d=getDep(j);
+						if (d>=0) {
+							int hh=getHead(d);
+							if (hh>i||hh<h) ncrosscut++;
+						} else ncrosscut++;
+					}
+				}
+			}
+		}
+		return ncrosscut;
+	}
+	
 	public void clearGroups() {
 		if (groups!=null) {
 			groups.clear();
