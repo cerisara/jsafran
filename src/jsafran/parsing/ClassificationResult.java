@@ -53,6 +53,7 @@ public class ClassificationResult {
 					ndel++;
 				} else if (drec>=0&&dref<0) {
 					errwords.add(recmot);
+					System.out.println("INS "+recmot);
 					nins++;
 				} else if (drec>=0&&dref>=0) {
 					int href = gref.getHead(dref);
@@ -86,7 +87,7 @@ public class ClassificationResult {
 				perdep[d.type][1]++;
 			}
 		}
-//		System.out.println("acc counts: ntot="+ntot+" nok="+nokLAS+" nsub="+nsub+" nhead="+nhead+" ndel="+ndel+" nins="+nins);
+		System.out.println("acc counts: ntot="+ntot+" nok="+nokUAS+" nsub="+nsub+" nhead="+nhead+" ndel="+ndel+" nins="+nins);
 		float[] LasUas = new float[perdep.length*2+2];
 		LasUas[0] = (float)nokLAS/(float)ntot;
 		LasUas[1] = (float)nokUAS/(float)ntot;
