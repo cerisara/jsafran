@@ -7,9 +7,17 @@ import java.util.List;
 
 import jsafran.Dep;
 import jsafran.DetGraph;
+import jsafran.GraphIO;
 
 public class ClassificationResult {
 	public static ArrayList<int[]> errors;
+	
+	public static void main(String args[]) {
+		List<DetGraph> grec = GraphIO.loadConll06(args[0], false);
+		List<DetGraph> gref = GraphIO.loadConll06(args[1], false);
+		float[] las = calcErrors(grec, gref);
+		System.out.println(Arrays.toString(las));
+	}
 	
 	public static boolean isWordCorrect(DetGraph grec, DetGraph gref, int w) {
         int d=grec.getDep(w);

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import corpus.text.TextSegments;
 
@@ -59,6 +60,24 @@ public class DetGraph implements Serializable {
 			String w = mots[i];
 			addMot(i, new Mot(w,w,"UNK"));
 		}
+	}
+	
+	public static void main(String args[]) {
+		List<DetGraph> gs = GraphIO.loadConll06(args[0], false);
+		List<DetGraph> xs = shuffle(gs);
+		GraphIO.saveConLL06(xs, "out.conll06");
+	}
+	public static List<DetGraph> shuffle(List<DetGraph> gs) {
+		ArrayList<DetGraph> g0 = new ArrayList<DetGraph>();
+		g0.addAll(gs);
+		ArrayList<DetGraph> res = new ArrayList<DetGraph>();
+		Random r = new Random();
+		for (;;) {
+			if (g0.size()==0) break;
+			int i=r.nextInt(g0.size());
+			res.add(g0.remove(i));
+		}
+		return res;
 	}
 	
 	public int countNonProjectiveArcs() {
