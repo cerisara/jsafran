@@ -115,6 +115,8 @@ public class MateParser {
 				gg.setSource(g.getSource());
 				for (int i=0;i<g.getNbMots();i++) {
 					gg.getMot(i).setPosInTxt(g.getMot(i).getDebPosInTxt(), g.getMot(i).getEndPosInTxt());
+					gg.getMot(i).setPOS(g.getMot(i).getPOS());
+					gg.getMot(i).setlemme(g.getMot(i).getLemme());
 				}
 				return gg;
 			}

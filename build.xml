@@ -14,15 +14,14 @@
 		<pathelement location="${libs}/malt.jar"/>
 		<pathelement location="${libs}/detcrf.jar"/>
 		<pathelement location="${libs}/anna.jar"/>
-		<pathelement location="${build}"/>
+		<pathelement location="${libs}/jtrans.jar"/>
+		<pathelement location="${libs}/myliblinear.jar"/>
+		<pathelement location="${libs}/jgit.jar"/>
+		<pathelement location="${libs}/jsch.jar"/>
+		<pathelement location="${libs}/jcommon-1.0.21.jar"/> 
+		<pathelement location="${libs}/jfreechart-1.0.17.jar"/>
+		<pathelement location="${libs}/JHTK.jar"/>
 		<pathelement location="src/morpho/opennlp/lib/jwnl-1.3.3.jar"/>
-		<pathelement location="lib/jtrans.jar"/>
-		<pathelement location="lib/myliblinear.jar"/>
-		<pathelement location="lib/jgit.jar"/>
-		<pathelement location="lib/jsch.jar"/>
-		<pathelement location="lib/jcommon-1.0.21.jar"/> 
-		<pathelement location="lib/jfreechart-1.0.17.jar"/>
-		<pathelement location="lib/JHTK.jar"/>
 	</path>
 	
     <target name="init">
