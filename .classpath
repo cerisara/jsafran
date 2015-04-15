@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/anna.jar"/>
-	<classpathentry kind="lib" path="lib/detcrf.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.21.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.17.jar"/>
 	<classpathentry kind="lib" path="lib/jgit.jar"/>
@@ -18,5 +17,6 @@
 	<classpathentry kind="lib" path="lib/opennlp-tools-1.4.3.jar"/>
 	<classpathentry kind="lib" path="lib/org.annolab.tt4j-1.0.12.jar"/>
 	<classpathentry kind="lib" path="lib/trove.jar"/>
+	<classpathentry kind="lib" path="/newNER/lib/StanfordNER.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

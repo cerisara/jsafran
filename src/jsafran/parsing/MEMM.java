@@ -15,8 +15,6 @@ import java.util.Set;
 
 import org.maltparser.core.helper.HashSet;
 
-import edu.stanford.nlp.util.Sets;
-
 import jsafran.DetGraph;
 import jsafran.Mot;
 

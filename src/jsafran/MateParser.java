@@ -161,7 +161,7 @@ public class MateParser {
 		}
 	}
 
-	static void parseAll(List<DetGraph> gs) {
+	public static void parseAll(List<DetGraph> gs) {
 		String ftmp = "_mate_tmp.conll";
 		String outf = "_mate_out.conll";
 		GraphIO.saveConLL09(gs, null, ftmp);
