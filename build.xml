@@ -7,6 +7,7 @@
     <property name="version" value="1.2"/>
 
 	<path id="jsafran.classpath">
+		<pathelement location="${libs}/stanford-parser.jar"/>
 		<pathelement location="${libs}/org.annolab.tt4j-1.0.12.jar"/>
 		<pathelement location="${libs}/maxent-2.5.2.jar"/>
 		<pathelement location="${libs}/opennlp-tools-1.4.3.jar"/>
@@ -34,7 +35,9 @@
 
     <target name="compile" depends="init" description="compile the source " >
         <echo message="JVM - ${ant.java.version}" />
-        <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8" target="1.6" source="1.6">
+        <!-- <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8" target="1.6" source="1.6"> -->
+        <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8">
+	    <compilerarg line="-source 1.6" />
     	    <classpath refid="jsafran.classpath" />
         </javac>
     </target>
@@ -63,18 +66,20 @@
 
 
 	<target name="jar" depends="compile">
-		<manifest file="${dist}/MANIFEST.MF">
-			<attribute name="Class-Path" value="lib/liblinear-1.8.jar lib/anna.jar lib/detcrf.jar lib/liblinear-1.33-with-deps.jar lib/libsvm.jar lib/log4j.jar lib/malt.jar lib/maxent-2.5.2.jar lib/opennlp-tools-1.4.3.jar lib/org.annolab.tt4j-1.0.12.jar lib/trove.jar lib/jtrans.jar lib/sphinx4.jar dist/jtrans.jar lib/basicplayer3.0.jar lib/commons-logging-api.jar lib/JHTK.jar lib/jl1.0.jar lib/jogg-0.0.7.jar lib/jorbis-0.0.15.jar lib/jspeex0.9.7.jar lib/JUNG.jar lib/junit-4.5.jar lib/mp3spi1.9.4.jar lib/tritonus_gsm-0.3.6.jar lib/tritonus_remaining.jar lib/tritonus_share.jar lib/vorbisspi1.0.2.jar lib/weka.jar lib/jsch.jar lib/jgit.jar"/>
-			<attribute name="Main-Class" value="utils.installer.JSafranInstall"/>
-			<attribute name="Implementation-Title" value="JSafran"/>
-			<attribute name="Implementation-Version" value="${version}"/>
-			<attribute name="Implementation-Vendor" value="Christophe Cerisara"/>
-			<attribute name="Build-Date" value="${TODAY}"/>
-		</manifest>
-	        <jar jarfile="jsafran.jar" basedir="${build}"
-	             manifest="${dist}/MANIFEST.MF">
-	        </jar>
+
+		<manifestclasspath property="manifest.classpath" jarfile="jsafran.jar">
+			<classpath refid="jsafran.classpath"/>
+		</manifestclasspath>
+		<jar destfile="jsafran.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Class-Path" value="${manifest.classpath}"/>
+				<attribute name="Main-Class" value="utils.installer.JSafranInstall"/>
+				<attribute name="Implementation-Title" value="JSafran"/>
+				<attribute name="Implementation-Version" value="${version}"/>
+				<attribute name="Implementation-Vendor" value="Christophe Cerisara"/>
+				<attribute name="Built-Date" value="${TODAY}"/>
+				<attribute name="Built-By" value="${user.name}"/>
+			</manifest>
+		</jar>
 	</target>
-
-
 </project>

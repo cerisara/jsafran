@@ -305,8 +305,11 @@ public class SyntaxGraphs {
 					}
 				}
 			} else if (s.indexOf("<group>")>=0) {
-				String[] ss = s.split(" ");
-				detgraph.addgroup(Integer.parseInt(ss[2]), Integer.parseInt(ss[3]), ss[1]);
+                String sz=s.trim();
+                int z=sz.lastIndexOf(' ');
+                int zz=sz.lastIndexOf(' ',z-1);
+                int zzz = sz.indexOf(' ')+1;
+				detgraph.addgroup(Integer.parseInt(sz.substring(zz+1,z)), Integer.parseInt(sz.substring(z+1)), sz.substring(zzz,zz));
 			} else if (s.indexOf("<dependances>")>=0) {
 				listedeps=true;
 			} else if (s.indexOf("</dependances>")>=0) {

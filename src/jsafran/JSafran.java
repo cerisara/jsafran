@@ -2486,6 +2486,11 @@ public class JSafran extends JPanel {
                         Srl.graphNormal=gs[0];
                         Srl.graphSrl = gs[1];
                         n.curlevel=1;
+                    } else if (args[arg].endsWith(".txt")) {
+                        GraphIO gio = new GraphIO(n.jf);
+                        List<DetGraph> gs = gio.loadAllGraphs(args[arg]);
+                        n.changeLevel(true);
+                        n.levels.get(n.curlevel).addAll(gs);
                     }
 
                     // on peut intercaler d'autres annotations

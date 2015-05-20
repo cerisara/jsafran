@@ -47,6 +47,7 @@ import jsafran.dislocations.DepEvaluation;
 import jsafran.dislocations.DislocAnnot;
 import jsafran.parsing.Malt4Jsafran;
 import jsafran.parsing.NodesSeq;
+import jsafran.parsing.StanfordParser;
 import jsafran.parsing.unsup.DelPonct;
 import jsafran.parsing.unsup.UnsupParsing;
 import jsafran.parsing.unsup.criteria.DepLen;
@@ -745,6 +746,8 @@ public class JSafranGUI extends JPanel {
 		
 		JMenu parsing = new JMenu("Parsing");
 		menus.add(parsing);
+
+        parsing.add(StanfordParser.getMenu(main));
 		
 		parsing.add(MateParser.getMenu(main));
 		
