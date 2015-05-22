@@ -36,8 +36,7 @@
     <target name="compile" depends="init" description="compile the source " >
         <echo message="JVM - ${ant.java.version}" />
         <!-- <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8" target="1.6" source="1.6"> -->
-        <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8">
-	    <compilerarg line="-source 1.6" />
+        <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8" target="1.6" source="1.6">
     	    <classpath refid="jsafran.classpath" />
         </javac>
     </target>
